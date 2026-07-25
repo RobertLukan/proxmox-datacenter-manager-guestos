@@ -29,7 +29,7 @@ endif
 	$(CARGO) prepare-debian $(CURDIR)/debian/cargo_registry --link-from-system
 	echo "\nlto=\"fat\"" >> debian/cargo_home/config.toml
 	echo "\nopt-level=\"s\"" >> debian/cargo_home/config.toml
-	echo "\ncodegen-units=1" >> debian/cargo_home/config.toml
+	echo "\ncodegen-units=16" >> debian/cargo_home/config.toml
 	# patch cargo_home config to use lld with wasm, otherwise the build fails
 	echo "\n[target.wasm32-unknown-unknown]" >> debian/cargo_home/config.toml
 	cat debian/cargo_home/config.toml | sed "s/linker=[^']\+/linker=rust-lld/" | grep "^rustflags = " >> debian/cargo_home/config.toml

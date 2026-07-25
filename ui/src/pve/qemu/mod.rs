@@ -97,29 +97,30 @@ impl yew::Component for QemuPanelComp {
                         )
                         .tip(tr!("Open the web UI of VM {0}.", props.info.vmid)),
                     )
-                    .with_child(
+                    .with_optional_child(props.info.template.then(|| {
                         Tooltip::new(
-                            Button::new(tr!("Sysprep (GuestOS)"))
+                            Button::new(tr!("Customize (GuestOS)"))
                                 .icon_class("fa fa-cogs")
                                 .aria_label(tr!(
-                                    "Open GuestOS Sysprep for VM {0}.",
+                                    "Clone template {0} and Sysprep in GuestOS.",
                                     props.info.vmid
                                 ))
                                 .on_activate({
                                     let remote = props.remote.clone();
                                     let vmid = props.info.vmid;
                                     move |_| {
-                                        let url = crate::guestos::sysprep_existing_url(vmid, &remote);
+                                        let url =
+                                            crate::guestos::sysprep_from_template_url(vmid, &remote);
                                         let _ = web_sys::window().unwrap().open_with_url(&url);
                                     }
                                 }),
                         )
                         .tip(tr!(
-                            "Open the GuestOS Sysprep wizard for VM {0} (remote {1}).",
+                            "GuestOS: clone template {0} then Sysprep the clone (remote {1}). Never runs on production VMs.",
                             props.info.vmid,
                             props.remote.clone()
-                        )),
-                    ),
+                        ))
+                    })),
             )
             .with_item_builder(
                 TabBarItem::new()
