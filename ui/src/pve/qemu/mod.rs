@@ -72,26 +72,54 @@ impl yew::Component for QemuPanelComp {
             .class(pwt::css::FlexFit)
             .title(title)
             .tool(
-                Tooltip::new(
-                    Button::new(tr!("Open Web UI"))
-                        .icon_class("fa fa-external-link")
-                        .aria_label(tr!("Open the web UI of VM {0}.", props.info.vmid))
-                        .on_activate({
-                            let link = ctx.link().clone();
-                            let remote = props.remote.clone();
-                            let node = props.node.clone();
-                            let vmid = props.info.vmid;
-                            move |_| {
-                                let id = format!("qemu/{vmid}");
-                                if let Some(url) =
-                                    crate::get_deep_url(&link, &remote, Some(&node), &id)
-                                {
-                                    let _ = web_sys::window().unwrap().open_with_url(&url.href());
-                                }
-                            }
-                        }),
-                )
-                .tip(tr!("Open the web UI of VM {0}.", props.info.vmid)),
+                Row::new()
+                    .gap(1)
+                    .with_child(
+                        Tooltip::new(
+                            Button::new(tr!("Open Web UI"))
+                                .icon_class("fa fa-external-link")
+                                .aria_label(tr!("Open the web UI of VM {0}.", props.info.vmid))
+                                .on_activate({
+                                    let link = ctx.link().clone();
+                                    let remote = props.remote.clone();
+                                    let node = props.node.clone();
+                                    let vmid = props.info.vmid;
+                                    move |_| {
+                                        let id = format!("qemu/{vmid}");
+                                        if let Some(url) =
+                                            crate::get_deep_url(&link, &remote, Some(&node), &id)
+                                        {
+                                            let _ =
+                                                web_sys::window().unwrap().open_with_url(&url.href());
+                                        }
+                                    }
+                                }),
+                        )
+                        .tip(tr!("Open the web UI of VM {0}.", props.info.vmid)),
+                    )
+                    .with_child(
+                        Tooltip::new(
+                            Button::new(tr!("Sysprep (GuestOS)"))
+                                .icon_class("fa fa-cogs")
+                                .aria_label(tr!(
+                                    "Open GuestOS Sysprep for VM {0}.",
+                                    props.info.vmid
+                                ))
+                                .on_activate({
+                                    let remote = props.remote.clone();
+                                    let vmid = props.info.vmid;
+                                    move |_| {
+                                        let url = crate::guestos::sysprep_existing_url(vmid, &remote);
+                                        let _ = web_sys::window().unwrap().open_with_url(&url);
+                                    }
+                                }),
+                        )
+                        .tip(tr!(
+                            "Open the GuestOS Sysprep wizard for VM {0} (remote {1}).",
+                            props.info.vmid,
+                            props.remote.clone()
+                        )),
+                    ),
             )
             .with_item_builder(
                 TabBarItem::new()

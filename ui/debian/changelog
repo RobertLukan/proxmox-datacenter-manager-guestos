@@ -1,3 +1,11 @@
+proxmox-datacenter-manager-ui (1.1.3+guestos.1) trixie; urgency=medium
+
+  * GuestOS: add "Sysprep (GuestOS)" toolbar button on the QEMU panel that
+    opens the GuestOS existing-VM sysprep wizard with vmid and PDM remote_id
+    (deep-link; lab GUESTOS_BASE http://192.168.123.197:5001).
+
+ -- Robert Lukan <robert@lukan.org>  Sat, 25 Jul 2026 15:40:00 +0200
+
 proxmox-datacenter-manager-ui (1.1.3) trixie; urgency=medium
 
   * guests: add console access for Proxmox VE guests, opened against the

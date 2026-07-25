@@ -41,6 +41,8 @@ mod dashboard;
 
 mod guests;
 
+mod guestos;
+
 use wasm_bindgen::JsValue;
 use yew::Html;
 use yew::html::IntoEventCallback;
