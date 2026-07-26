@@ -16,6 +16,8 @@ const_format.workspace = true
 futures.workspace = true
 glob.workspace = true
 hex.workspace = true
+hmac = "0.12"
+sha2 = "0.10"
 http.workspace = true
 http-body-util.workspace = true
 hyper.workspace = true
@@ -42,7 +44,7 @@ proxmox-base64.workspace = true
 proxmox-daemon.workspace = true
 proxmox-disks.workspace = true
 proxmox-docgen.workspace = true
-proxmox-http = { workspace = true, features = [ "client-trait", "proxmox-async" ] } # pbs-client doesn't use these
+proxmox-http = { workspace = true, features = [ "client", "client-trait", "proxmox-async" ] }
 proxmox-installer-types.workspace = true
 proxmox-lang.workspace = true
 proxmox-ldap.workspace = true

@@ -14,6 +14,7 @@ use pwt::widget::data_table::{DataTable, DataTableColumn, DataTableHeader};
 use pwt::widget::{Button, Column, Container, Fa, Panel, Row, Toolbar, Tooltip};
 
 use crate::guestos::{self, GuestOsTask};
+use crate::pdm_client;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct GuestOsCustomizationList {
@@ -45,7 +46,7 @@ fn is_running(status: &str) -> bool {
 
 enum Msg {
     Reload,
-    Loaded(Result<Vec<GuestOsTask>, String>),
+    Loaded(Result<(Vec<GuestOsTask>, Option<String>), String>),
     SelectionChange,
 }
 
@@ -55,6 +56,7 @@ struct GuestOsCustomizationListComp {
     columns: Rc<Vec<DataTableHeader<GuestOsTask>>>,
     load_error: Option<String>,
     loading: bool,
+    guestos_base: Option<String>,
     _interval: Option<Interval>,
 }
 
@@ -121,8 +123,10 @@ impl GuestOsCustomizationListComp {
         let remote = ctx.props().remote.as_ref().map(|r| r.to_string());
         let link = ctx.link().clone();
         wasm_bindgen_futures::spawn_local(async move {
-            let result = guestos::fetch_customization_tasks(remote.as_deref())
+            let result = pdm_client()
+                .guestos_list_tasks(remote.as_deref())
                 .await
+                .map(|list| (list.tasks, list.base_url))
                 .map_err(|e| e.to_string());
             link.send_message(Msg::Loaded(result));
         });
@@ -144,6 +148,7 @@ impl Component for GuestOsCustomizationListComp {
             columns: columns(),
             load_error: None,
             loading: false,
+            guestos_base: None,
             _interval: None,
         };
         me.reload(ctx);
@@ -167,9 +172,12 @@ impl Component for GuestOsCustomizationListComp {
                 self.reload(ctx);
                 true
             }
-            Msg::Loaded(Ok(tasks)) => {
+            Msg::Loaded(Ok((tasks, base_url))) => {
                 self.loading = false;
                 self.load_error = None;
+                if base_url.is_some() {
+                    self.guestos_base = base_url;
+                }
                 self.store.set_data(tasks);
                 true
             }
@@ -183,23 +191,24 @@ impl Component for GuestOsCustomizationListComp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let selected = self.selection.selected_key().and_then(|k| {
-            self.store
-                .read()
-                .lookup_record(&k)
-                .cloned()
-        });
+        let selected = self
+            .selection
+            .selected_key()
+            .and_then(|k| self.store.read().lookup_record(&k).cloned());
 
-        let open_btn = selected.as_ref().map(|t| {
-            let url = guestos::workflow_url(&t.id);
-            Tooltip::new(
-                Button::new(tr!("Open in GuestOS"))
-                    .icon_class("fa fa-external-link")
-                    .onclick(move |_| {
-                        let _ = web_sys::window().unwrap().open_with_url(&url);
-                    }),
+        let open_btn = selected.as_ref().and_then(|t| {
+            let base = self.guestos_base.as_ref()?;
+            let url = guestos::workflow_url(base, &t.id);
+            Some(
+                Tooltip::new(
+                    Button::new(tr!("Open in GuestOS"))
+                        .icon_class("fa fa-external-link")
+                        .onclick(move |_| {
+                            let _ = web_sys::window().unwrap().open_with_url(&url);
+                        }),
+                )
+                .tip(tr!("Open the GuestOS workflow page for this job.")),
             )
-            .tip(tr!("Open the GuestOS workflow page for this job."))
         });
 
         let toolbar = Toolbar::new()

@@ -47,18 +47,84 @@ impl QemuPanel {
     }
 }
 
-pub struct QemuPanelComp {}
+pub enum Msg {
+    WindowsCheck(Result<bool, String>),
+}
+
+pub struct QemuPanelComp {
+    /// None while loading; Some(true) only for Windows ostype templates.
+    is_windows_template: Option<bool>,
+}
+
+impl QemuPanelComp {
+    fn load_windows_check(&self, ctx: &yew::Context<Self>) {
+        let props = ctx.props();
+        if !props.info.template {
+            return;
+        }
+        let remote = props.remote.clone();
+        let node = props.node.clone();
+        let vmid = props.info.vmid;
+        let link = ctx.link().clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = crate::guestos::template_is_windows(&remote, Some(&node), vmid)
+                .await
+                .map_err(|e| e.to_string());
+            link.send_message(Msg::WindowsCheck(result));
+        });
+    }
+}
 
 impl yew::Component for QemuPanelComp {
-    type Message = ();
+    type Message = Msg;
     type Properties = QemuPanel;
 
-    fn create(_ctx: &yew::Context<Self>) -> Self {
-        Self {}
+    fn create(ctx: &yew::Context<Self>) -> Self {
+        let me = Self {
+            is_windows_template: if ctx.props().info.template {
+                None
+            } else {
+                Some(false)
+            },
+        };
+        me.load_windows_check(ctx);
+        me
+    }
+
+    fn changed(&mut self, ctx: &yew::Context<Self>, old: &Self::Properties) -> bool {
+        let props = ctx.props();
+        if props.remote != old.remote
+            || props.node != old.node
+            || props.info.vmid != old.info.vmid
+            || props.info.template != old.info.template
+        {
+            self.is_windows_template = if props.info.template {
+                None
+            } else {
+                Some(false)
+            };
+            self.load_windows_check(ctx);
+        }
+        true
+    }
+
+    fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::WindowsCheck(Ok(is_win)) => {
+                self.is_windows_template = Some(is_win);
+                true
+            }
+            Msg::WindowsCheck(Err(err)) => {
+                log::warn!("GuestOS ostype check failed: {err}");
+                self.is_windows_template = Some(false);
+                true
+            }
+        }
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
         let props = ctx.props();
+        let show_customize = props.info.template && self.is_windows_template == Some(true);
 
         let title: Html = Row::new()
             .gap(2)
@@ -97,7 +163,7 @@ impl yew::Component for QemuPanelComp {
                         )
                         .tip(tr!("Open the web UI of VM {0}.", props.info.vmid)),
                     )
-                    .with_optional_child(props.info.template.then(|| {
+                    .with_optional_child(show_customize.then(|| {
                         Tooltip::new(
                             Button::new(tr!("Customize (GuestOS)"))
                                 .icon_class("fa fa-cogs")
@@ -107,16 +173,38 @@ impl yew::Component for QemuPanelComp {
                                 ))
                                 .on_activate({
                                     let remote = props.remote.clone();
+                                    let node = props.node.clone();
                                     let vmid = props.info.vmid;
                                     move |_| {
-                                        let url =
-                                            crate::guestos::sysprep_from_template_url(vmid, &remote);
-                                        let _ = web_sys::window().unwrap().open_with_url(&url);
+                                        let remote = remote.clone();
+                                        let node = node.clone();
+                                        wasm_bindgen_futures::spawn_local(async move {
+                                            match crate::guestos::launch_sysprep_customize(
+                                                &remote,
+                                                Some(&node),
+                                                vmid,
+                                            )
+                                            .await
+                                            {
+                                                Ok(url) => {
+                                                    let _ = web_sys::window()
+                                                        .unwrap()
+                                                        .open_with_url(&url);
+                                                }
+                                                Err(err) => {
+                                                    let _ = web_sys::window()
+                                                        .unwrap()
+                                                        .alert_with_message(&format!(
+                                                            "GuestOS Customize failed: {err}"
+                                                        ));
+                                                }
+                                            }
+                                        });
                                     }
                                 }),
                         )
                         .tip(tr!(
-                            "GuestOS: clone template {0} then Sysprep the clone (remote {1}). Never runs on production VMs.",
+                            "GuestOS: clone Windows template {0} then Sysprep the clone (remote {1}). Never runs on production VMs.",
                             props.info.vmid,
                             props.remote.clone()
                         ))

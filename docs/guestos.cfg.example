@@ -1,0 +1,21 @@
+# Example GuestOS sidecar config for PDM
+#
+# Install as: /etc/proxmox-datacenter-manager/guestos.cfg
+# Format is proxmox-simple-config: "key: value" (colon required).
+# Values must match the GuestOS Compose .env (GUESTOS_*).
+# Ownership: www-data:www-data mode 640 (same as remotes.cfg).
+
+# Public GuestOS base URL (no trailing slash)
+base-url: https://guestos.example.com
+
+# Bearer token for GuestOS GET /api/tasks (server-side only)
+api-token: change-me-to-match-GUESTOS_API_TOKEN
+
+# HMAC secret for GuestOS /launch (must match GUESTOS_LAUNCH_SECRET)
+launch-secret: change-me-to-match-GUESTOS_LAUNCH_SECRET
+
+# Launch token lifetime seconds (default 300)
+launch-ttl: 300
+
+# Lab self-signed Caddy: false. Production with a trusted cert: true (or omit).
+verify-tls: true

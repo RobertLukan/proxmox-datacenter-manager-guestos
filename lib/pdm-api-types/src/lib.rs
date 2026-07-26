@@ -106,6 +106,8 @@ pub mod ceph;
 
 pub mod firewall;
 
+pub mod guestos;
+
 pub mod remotes;
 
 pub mod remote_updates;

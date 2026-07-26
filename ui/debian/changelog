@@ -1,3 +1,22 @@
+proxmox-datacenter-manager-ui (1.1.3+guestos.8) trixie; urgency=medium
+
+  * GuestOS: send remote-id and template-vmid in the launch POST body.
+
+ -- Robert Lukan <robert@lukan.org>  Sun, 26 Jul 2026 19:20:00 +0200
+
+proxmox-datacenter-manager-ui (1.1.3+guestos.7) trixie; urgency=medium
+
+  * GuestOS: fix Customize launch POST body (send JSON object, not null).
+
+ -- Robert Lukan <robert@lukan.org>  Sun, 26 Jul 2026 18:55:00 +0200
+
+proxmox-datacenter-manager-ui (1.1.3+guestos.6) trixie; urgency=medium
+
+  * GuestOS: server proxy for launch signing and task list (secrets in
+    guestos.cfg); Customize button only for Windows QEMU ostype templates.
+
+ -- Robert Lukan <robert@lukan.org>  Sun, 26 Jul 2026 11:40:00 +0200
+
 proxmox-datacenter-manager-ui (1.1.3+guestos.5) trixie; urgency=medium
 
   * GuestOS: add Customizations tab (job history) on Remotes and PVE remote

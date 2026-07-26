@@ -9,6 +9,7 @@ use pdm_api_types::auto_installer::{
     PreparedInstallationConfig, PreparedInstallationConfigCreateResult,
     PreparedInstallationConfigUpdateResult, PreparedInstallationConfigUpdater,
 };
+use pdm_api_types::guestos::{GuestOsLaunchResponse, GuestOsTaskList};
 use pdm_api_types::remote_updates::RemoteUpdateSummary;
 use pdm_api_types::remotes::{RemoteType, TlsProbeOutcome};
 use pdm_api_types::resource::{PveResource, RemoteResources, ResourceType, TopEntities};
@@ -73,6 +74,8 @@ pub mod types {
         CreateVnetParams, CreateZoneParams, ListController, ListVnet, ListZone, SDN_ID_SCHEMA,
     };
     pub use pve_api_types::{ListControllersType, ListZonesType, SdnObjectState};
+
+    pub use pdm_api_types::guestos::{GuestOsLaunchResponse, GuestOsTask, GuestOsTaskList};
 
     pub use pve_api_types::{
         CephFlagInfo, CephFlagInfoName, CephFs, CephMds, CephMgr, CephMon, CephPool,
@@ -2101,6 +2104,43 @@ impl<T: HttpApiClient> PdmClient<T> {
             .await?
             .expect_json()?
             .data)
+    }
+
+    /// Ask the PDM server to HMAC-sign a GuestOS Sysprep launch URL.
+    pub async fn guestos_launch(
+        &self,
+        remote_id: &str,
+        template_vmid: u32,
+    ) -> Result<GuestOsLaunchResponse, Error> {
+        #[derive(Serialize)]
+        #[serde(rename_all = "kebab-case")]
+        struct LaunchArgs<'a> {
+            remote_id: &'a str,
+            template_vmid: u32,
+        }
+        Ok(self
+            .0
+            .post(
+                "/api2/extjs/guestos/launch",
+                &LaunchArgs {
+                    remote_id,
+                    template_vmid,
+                },
+            )
+            .await?
+            .expect_json()?
+            .data)
+    }
+
+    /// List recent GuestOS customization tasks (proxied server-side).
+    pub async fn guestos_list_tasks(
+        &self,
+        remote_id: Option<&str>,
+    ) -> Result<GuestOsTaskList, Error> {
+        let path = ApiPathBuilder::new("/api2/extjs/guestos/tasks")
+            .maybe_arg("remote-id", &remote_id)
+            .build();
+        Ok(self.0.get(&path).await?.expect_json()?.data)
     }
 
     /// Adds a new access token for authenticating requests from the automated installer.

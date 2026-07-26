@@ -6,6 +6,7 @@ pub mod auto_install;
 pub mod ceph;
 pub mod certificate_config;
 pub mod domains;
+pub mod guestos;
 pub mod node;
 pub mod remotes;
 pub mod setup;

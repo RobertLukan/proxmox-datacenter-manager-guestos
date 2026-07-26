@@ -1,3 +1,10 @@
+proxmox-datacenter-manager (1.1.7+guestos.8) trixie; urgency=medium
+
+  * GuestOS: server proxy for launch URL signing and task list
+    (/api2/extjs/guestos/*); secrets from guestos.cfg (not UI wasm).
+
+ -- Robert Lukan <robert@lukan.org>  Sun, 26 Jul 2026 20:15:00 +0200
+
 proxmox-datacenter-manager (1.1.7) trixie; urgency=medium
 
   * fix #7795: remote guest consoles: use the correct privilege path when
