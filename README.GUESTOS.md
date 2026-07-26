@@ -1,16 +1,20 @@
 # Proxmox Datacenter Manager — GuestOS Sysprep fork
 
-Thin **AGPL-3** fork of [proxmox/proxmox-datacenter-manager](https://github.com/proxmox/proxmox-datacenter-manager) (UI package) that adds a **Sysprep (GuestOS)** action on the QEMU guest panel.
+Thin **AGPL-3** fork of [proxmox/proxmox-datacenter-manager](https://github.com/proxmox/proxmox-datacenter-manager) (UI package) that adds GuestOS **Sysprep customize** entry points in PDM.
+
+Corresponding GuestOS app: https://github.com/RobertLukan/proxmox-guestos-customization  
+(**Sysprep** is the supported path; **WinRM reconfigure** in GuestOS standalone UI is legacy/deprecated and is not exposed from PDM.)
 
 ## What changed
 
-- QEMU panel toolbar: **Sysprep (GuestOS)** opens  
-  `{GUESTOS_BASE}/sysprep_existing_vm_form/{vmid}?remote_id={pdm_remote}`  
-  in a new tab.
-- Lab default: `GUESTOS_BASE=http://192.168.123.197:5001` (see `ui/src/guestos.rs`).
-- Package version: `1.1.3+guestos.1` (based on upstream UI **1.1.3**).
+- On a **Windows Proxmox template**: **Customize (GuestOS)** opens a signed  
+  `{GUESTOS_BASE}/launch?template_vmid=…&remote_id=…&exp=…&jti=…&sig=…` deep-link  
+  (HMAC; creates a GuestOS session and lands on the clone+Sysprep wizard).
+- **GuestOS** tab (Remotes / per-remote): polls GuestOS `GET /api/tasks` for customization job history.
+- Lab bake-in: `GUESTOS_BASE=https://192.168.123.197` (see `ui/src/guestos.rs`).
+- Package version: `1.1.3+guestos.5` (based on upstream UI **1.1.3**).
 
-No PDM API proxy and no GuestOS API token in the browser — operators use a normal GuestOS login session for the wizard.
+No PDM API proxy — the browser talks to GuestOS HTTPS for launch tokens and the task list (lab API token baked into the UI wasm).
 
 ## Branch
 
