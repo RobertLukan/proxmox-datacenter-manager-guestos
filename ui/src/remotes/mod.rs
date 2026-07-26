@@ -27,6 +27,9 @@ pub use config::{RemoteConfigPanel, create_remote};
 mod tasks;
 pub use tasks::RemoteTaskList;
 
+mod guestos_tasks;
+pub use guestos_tasks::GuestOsCustomizationList;
+
 mod updates;
 pub use updates::UpdateTree;
 
@@ -67,6 +70,13 @@ pub fn system_configuration() -> Html {
                 .label(tr!("Tasks"))
                 .icon_class("fa fa-book"),
             |_| RemoteTaskList::new().into(),
+        )
+        .with_item_builder(
+            TabBarItem::new()
+                .key("guestos")
+                .label(tr!("GuestOS"))
+                .icon_class("fa fa-desktop"),
+            |_| GuestOsCustomizationList::new().into(),
         )
         .with_item_builder(
             TabBarItem::new()

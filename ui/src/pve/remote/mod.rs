@@ -8,7 +8,7 @@ use pwt::prelude::*;
 use pwt::props::{ContainerBuilder, WidgetBuilder};
 use pwt::widget::{Fa, Row, TabBarItem, TabPanel};
 
-use crate::remotes::RemoteTaskList;
+use crate::remotes::{GuestOsCustomizationList, RemoteTaskList};
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct PveRemotePanel {
@@ -61,6 +61,16 @@ impl yew::Component for PveRemotePanelComp {
                 {
                     let remote = props.remote.clone();
                     move |_| RemoteTaskList::new().remote(remote.clone()).into()
+                },
+            )
+            .with_item_builder(
+                TabBarItem::new()
+                    .key("guestos_view")
+                    .label(tr!("GuestOS"))
+                    .icon_class("fa fa-desktop"),
+                {
+                    let remote = props.remote.clone();
+                    move |_| GuestOsCustomizationList::new().remote(remote.clone()).into()
                 },
             )
             .with_item_builder(
